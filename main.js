@@ -11,7 +11,9 @@ function Modal() {
             return;
         }
 
-        const content = template.content.cloneNode(true); // true sẽ clone cả con. Chỉ clone ptử, k clone xử lý sự kiện (clean)
+        // true sẽ clone cả con. Chỉ clone ptử, k clone xử lý sự kiện (clean)
+        // nếu k dùng cloneNode thì content chỉ hiện lần đầu, khi đóng lại sẽ mất luôn vì content bị append sang class modalContent, khi đóng lại sẽ xóa luôn
+        const content = template.content.cloneNode(true); 
 
         // Create modal elements
         const backdrop = document.createElement("div");
@@ -87,4 +89,4 @@ $("#open-modal-3").onclick = () => {
 
 // 1. Xử lý đc sự kiện submit form, lấy đc các giá trị của input khi submit
 // 2. Thêm tùy chọn bật/tắt cho phép click vào overlay để đóng modal. (form nhiều chỗ điền, out là mất)
-// 3. K cuộn trang k modal đang bật
+// 3. K cuộn trang khi modal đang bật
