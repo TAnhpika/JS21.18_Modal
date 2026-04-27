@@ -1,9 +1,16 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
+// const form = $("#modal-2").content.querySelector("#login-form");
+// chỉ lấy form trong template, k phải ở modal
+// form.onsubmit = (e) => {
+//     e.preventDefault();
+//     console.log("Submitted");
+// };
+
 function Modal() {
     this.openModal = (options = {}) => {
-        const { templateId } = options;
+        const { templateId, allowBackdropClose = true } = options;
         const template = $(`#${templateId}`);
 
         if (!template) {
@@ -11,9 +18,7 @@ function Modal() {
             return;
         }
 
-        // true sẽ clone cả con. Chỉ clone ptử, k clone xử lý sự kiện (clean)
-        // nếu k dùng cloneNode thì content chỉ hiện lần đầu, khi đóng lại sẽ mất luôn vì content bị append sang class modalContent, khi đóng lại sẽ xóa luôn
-        const content = template.content.cloneNode(true); 
+        const content = template.content.cloneNode(true);
 
         // Create modal elements
         const backdrop = document.createElement("div");
@@ -37,33 +42,42 @@ function Modal() {
 
         setTimeout(() => {
             backdrop.classList.add("show");
-        }, 0); // tính bất đồng bộ - dù 0 nhưng vẫn chạy sau
+        }, 0);
 
         // Attach event listeners
         closeBtn.onclick = () => this.closeModal(backdrop);
 
-        backdrop.onclick = (e) => {
-            if (e.target === backdrop) {
-                this.closeModal(backdrop);
-            }
-        };
+        // 2. Thêm tùy chọn bật/tắt cho phép click vào overlay để đóng modal. (form nhiều chỗ điền, out là mất)
+        if (allowBackdropClose) {
+            backdrop.onclick = (e) => {
+                if (e.target === backdrop) {
+                    this.closeModal(backdrop);
+                    // Enable scrolling
+                    document.body.classList.remove("no-scroll");
+                }
+            };
+        }
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 this.closeModal(backdrop);
+                // Enable scrolling
+                document.body.classList.remove("no-scroll");
             }
         });
+
+        // 3. Khóa cuộn trang khi modal đang bật: tránh người dùng mất tập trung vào nội dung modal
+        // Disable scrolling
+        document.body.classList.add("no-scroll");
+
+        return backdrop;
     };
 
     this.closeModal = (modalElement) => {
         modalElement.classList.remove("show");
-        // thực hiện sau khi hoàn thành transition
         modalElement.ontransitionend = () => {
-            // chạy 3 lần vì có 3 transition
-            // từ lần 2 lỗi vì k thấy con để gỡ
-            // document.body.removeChild(modalElement);
-
-            // dù k có vẫn k báo lỗi
             modalElement.remove();
+            // Enable scrolling
+            document.body.classList.remove("no-scroll");
         };
     };
 }
@@ -71,22 +85,35 @@ function Modal() {
 const modal = new Modal();
 
 $("#open-modal-1").onclick = () => {
-    // modal.openModal($('#modal-1').innerHTML);
-    modal.openModal({
+    const modalElement = modal.openModal({
         templateId: "modal-1",
     });
+
+    const title = modalElement.querySelector("h1");
+    console.log(title);
 };
 
 $("#open-modal-2").onclick = () => {
-    modal.openModal({
+    const modalElement = modal.openModal({
         templateId: "modal-2",
+        allowBackdropClose: false,
     });
+
+    // 1. Xử lý đc sự kiện submit form, lấy đc các giá trị của input khi submit
+    const form = modalElement.querySelector("#login-form");
+    if (form) {
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const formData = {
+                email: $("#email").value.trim(),
+                password: $("#password").value.trim(),
+            };
+
+            console.log(formData);
+        };
+    }
 };
 
 $("#open-modal-3").onclick = () => {
     modal.openModal("<h1>Hellopika3</h1>");
 };
-
-// 1. Xử lý đc sự kiện submit form, lấy đc các giá trị của input khi submit
-// 2. Thêm tùy chọn bật/tắt cho phép click vào overlay để đóng modal. (form nhiều chỗ điền, out là mất)
-// 3. K cuộn trang khi modal đang bật
