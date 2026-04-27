@@ -2,6 +2,35 @@ const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
 function Modal() {
+
+    // let _scrollbarWidth; -> Cache dùng getScrollbarWidth.value - thuộc tính obj để lưu -> hàm độc lập, k phụ thuộc biến ngoài
+    function getScrollbarWidth() {
+        if (getScrollbarWidth.value) {
+            console.log("Trả về giá trị đã lưu(k tính lại): ", getScrollbarWidth.value);
+
+            return getScrollbarWidth.value;
+        }
+
+        const div = document.createElement("div");
+        Object.assign(div.style, {
+            overflow: "scroll",
+            position: "absolute",
+            top: "-9999px",
+        });
+
+        document.body.appendChild(div);
+
+        const scrollbarWidth = div.offsetWidth - div.clientWidth;
+
+        document.body.removeChild(div);
+
+        getScrollbarWidth.value = scrollbarWidth;
+
+        console.log("1st cal: ", getScrollbarWidth.value);
+
+        return scrollbarWidth;
+    }
+
     this.openModal = (options = {}) => {
         const { templateId, allowBackdropClose = true } = options;
         const template = $(`#${templateId}`);
@@ -40,7 +69,7 @@ function Modal() {
         // 3. Khóa cuộn trang khi modal đang bật: tránh người dùng mất tập trung vào nội dung modal
         // Disable scrolling
         document.body.classList.add("no-scroll");
-        document.body.style.paddingRight = getScrollbarWidth() + 'px';
+        document.body.style.paddingRight = getScrollbarWidth() + "px";
 
         // Attach event listeners
         closeBtn.onclick = () => this.closeModal(backdrop);
@@ -108,20 +137,3 @@ $("#open-modal-2").onclick = () => {
         };
     }
 };
-
-function getScrollbarWidth() {
-    const div = document.createElement('div')
-    Object.assign(div.style, {
-        overflow: 'scroll',
-        position: 'absolute',
-        top: '-9999px',
-    })
-
-    document.body.appendChild(div)
-
-    const scrollbarWidth = div.offsetWidth - div.clientWidth
-
-    document.body.removeChild(div)
-
-    return scrollbarWidth
-}
