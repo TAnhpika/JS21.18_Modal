@@ -1,13 +1,6 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
-// const form = $("#modal-2").content.querySelector("#login-form");
-// chỉ lấy form trong template, k phải ở modal
-// form.onsubmit = (e) => {
-//     e.preventDefault();
-//     console.log("Submitted");
-// };
-
 function Modal() {
     this.openModal = (options = {}) => {
         const { templateId, allowBackdropClose = true } = options;
@@ -44,6 +37,11 @@ function Modal() {
             backdrop.classList.add("show");
         }, 0);
 
+        // 3. Khóa cuộn trang khi modal đang bật: tránh người dùng mất tập trung vào nội dung modal
+        // Disable scrolling
+        document.body.classList.add("no-scroll");
+        document.body.style.paddingRight = getScrollbarWidth() + 'px';
+
         // Attach event listeners
         closeBtn.onclick = () => this.closeModal(backdrop);
 
@@ -65,10 +63,6 @@ function Modal() {
             }
         });
 
-        // 3. Khóa cuộn trang khi modal đang bật: tránh người dùng mất tập trung vào nội dung modal
-        // Disable scrolling
-        document.body.classList.add("no-scroll");
-
         return backdrop;
     };
 
@@ -78,6 +72,7 @@ function Modal() {
             modalElement.remove();
             // Enable scrolling
             document.body.classList.remove("no-scroll");
+            document.body.style.paddingRight = "";
         };
     };
 }
@@ -114,6 +109,19 @@ $("#open-modal-2").onclick = () => {
     }
 };
 
-$("#open-modal-3").onclick = () => {
-    modal.openModal("<h1>Hellopika3</h1>");
-};
+function getScrollbarWidth() {
+    const div = document.createElement('div')
+    Object.assign(div.style, {
+        overflow: 'scroll',
+        position: 'absolute',
+        top: '-9999px',
+    })
+
+    document.body.appendChild(div)
+
+    const scrollbarWidth = div.offsetWidth - div.clientWidth
+
+    document.body.removeChild(div)
+
+    return scrollbarWidth
+}
