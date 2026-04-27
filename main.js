@@ -1,17 +1,18 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
-// <div class="modal-backdrop">
-//     <div class="modal-container">
-//         <button class="modal-close">&times;</button>
-//         <div class="modal-content">
-//              ...
-//         </div>
-//     </div>
-// </div>;
-
 function Modal() {
-    this.openModal = (content) => {
+    this.openModal = (options = {}) => {
+        const { templateId } = options;
+        const template = $(`#${templateId}`);
+
+        if (!template) {
+            console.error(`#${templateId} does not exist!`);
+            return;
+        }
+
+        const content = template.content.cloneNode(true); // true sẽ clone cả con. Chỉ clone ptử, k clone xử lý sự kiện (clean)
+
         // Create modal elements
         const backdrop = document.createElement("div");
         backdrop.className = "modal-backdrop";
@@ -27,7 +28,7 @@ function Modal() {
         modalContent.className = "modal-content";
 
         // Append content and elements
-        modalContent.innerHTML = content;
+        modalContent.append(content);
         container.append(closeBtn, modalContent);
         backdrop.append(container);
         document.body.append(backdrop);
@@ -68,20 +69,22 @@ function Modal() {
 const modal = new Modal();
 
 $("#open-modal-1").onclick = () => {
-    modal.openModal($('#modal-1').innerHTML);
-    /**
-     * modal.openModal({
-     * templateId: 'modal-1'
-     * })
-     */
+    // modal.openModal($('#modal-1').innerHTML);
+    modal.openModal({
+        templateId: "modal-1",
+    });
 };
 
 $("#open-modal-2").onclick = () => {
-    modal.openModal("<h1>Hellopika2</h1>");
+    modal.openModal({
+        templateId: "modal-2",
+    });
 };
 
 $("#open-modal-3").onclick = () => {
     modal.openModal("<h1>Hellopika3</h1>");
 };
 
-console.log($('#modal-1').innerHTML);
+// 1. Xử lý đc sự kiện submit form, lấy đc các giá trị của input khi submit
+// 2. Thêm tùy chọn bật/tắt cho phép click vào overlay để đóng modal. (form nhiều chỗ điền, out là mất)
+// 3. K cuộn trang k modal đang bật
