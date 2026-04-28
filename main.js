@@ -7,6 +7,8 @@ function Modal(options = {}) {
         cssClass = [],
         destroyOnClose = true,
         closeMethods = ["button", "overlay", "escape"],
+        onOpen,
+        onClose,
     } = options;
     const template = $(`#${templateId}`);
 
@@ -111,12 +113,18 @@ function Modal(options = {}) {
             });
         }
 
+        this._backdrop.ontransitionend = (e) => {
+            if (e.propertyName !== "transform") return;
+            if (typeof onOpen === "function") onOpen();
+        };
         return this._backdrop;
     };
 
     this.close = (destroy = destroyOnClose) => {
         this._backdrop.classList.remove("show");
-        this._backdrop.ontransitionend = () => {
+        this._backdrop.ontransitionend = (e) => {
+            if (e.propertyName !== "transform") return;
+
             if (this._backdrop && destroy) {
                 // fix: transition gọi 3 lần nhưng khi set null sẽ văng lỗi
                 this._backdrop.remove();
@@ -125,6 +133,8 @@ function Modal(options = {}) {
             // Enable scrolling
             document.body.classList.remove("no-scroll");
             document.body.style.paddingRight = "";
+
+            if (typeof onClose === "function") onClose();
         };
     };
 
@@ -136,12 +146,16 @@ function Modal(options = {}) {
 const modal1 = new Modal({
     templateId: "modal-1",
     destroyOnClose: false,
+    onOpen: () => {
+        console.log("Modal 1 opened");
+    },
+    onClose: () => {
+        console.log("Modal 1 closed");
+    },
 });
 
 $("#open-modal-1").onclick = () => {
     const modalElement = modal1.open();
-
-    // modal1.close()
 };
 
 const modal2 = new Modal({
@@ -150,10 +164,10 @@ const modal2 = new Modal({
     // footer: true,
     cssClass: ["class1", "class2", "classN"],
     onOpen: () => {
-        console.log("Modal opened");
+        console.log("Modal 2 opened");
     },
     onClose: () => {
-        console.log("Modal closes");
+        console.log("Modal 2 closed");
     },
 });
 
