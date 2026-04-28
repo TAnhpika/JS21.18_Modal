@@ -6,6 +6,7 @@ function Modal(options = {}) {
         templateId,
         cssClass = [],
         destroyOnClose = true,
+        footer = false,
         closeMethods = ["button", "overlay", "escape"],
         onOpen,
         onClose,
@@ -76,8 +77,27 @@ function Modal(options = {}) {
         // Append content and elements
         modalContent.append(content);
         container.append(modalContent);
+
+        if (footer) {
+            this._modalFooter = document.createElement("div");
+            this._modalFooter.className = "modal-footer";
+
+            if (this._footerContent) {
+                this._modalFooter.innerHTML = this._footerContent;
+            }
+            container.append(this._modalFooter);
+        }
+
         this._backdrop.append(container);
         document.body.append(this._backdrop);
+    };
+
+    this.setFooterContent = (html) => {
+        this._footerContent = html;
+        // hỗ trợ thay đổi footer kể cả sau khi mở - sau này nút thay đổi nội dung sẽ hiện đc
+        if (this._modalFooter) {
+            this._modalFooter.innerHTML = html
+        }
     };
 
     this.open = () => {
@@ -113,29 +133,34 @@ function Modal(options = {}) {
             });
         }
 
-        this._backdrop.ontransitionend = (e) => {
-            if (e.propertyName !== "transform") return;
+        this._onTransitionEnd(() => {
             if (typeof onOpen === "function") onOpen();
-        };
+        });
+
         return this._backdrop;
     };
 
-    this.close = (destroy = destroyOnClose) => {
-        this._backdrop.classList.remove("show");
+    this._onTransitionEnd = (callback) => {
         this._backdrop.ontransitionend = (e) => {
             if (e.propertyName !== "transform") return;
+            if (typeof callback === "function") callback();
+        };
+    };
+    this.close = (destroy = destroyOnClose) => {
+        this._backdrop.classList.remove("show");
 
+        this._onTransitionEnd(() => {
             if (this._backdrop && destroy) {
                 // fix: transition gọi 3 lần nhưng khi set null sẽ văng lỗi
                 this._backdrop.remove();
                 this._backdrop = null;
+                this._modalFooter = null
             }
             // Enable scrolling
             document.body.classList.remove("no-scroll");
             document.body.style.paddingRight = "";
-
             if (typeof onClose === "function") onClose();
-        };
+        });
     };
 
     this.destroy = () => {
@@ -161,7 +186,6 @@ $("#open-modal-1").onclick = () => {
 const modal2 = new Modal({
     templateId: "modal-2",
     closeMethods: ["button", "escape"],
-    // footer: true,
     cssClass: ["class1", "class2", "classN"],
     onOpen: () => {
         console.log("Modal 2 opened");
@@ -171,12 +195,9 @@ const modal2 = new Modal({
     },
 });
 
-// modal2.open()
-// modal2.close(true) // chỉ ẩn class show, k gỡ để có thể đọc tiếp từ đoạn khi đóng
-// modal2.setFooterContent('HTML string)
+// modal2.setFooterContent('HTML string')
 // modal2.addFooterButton('Cancel', 'class-1', 'class-2', (e) => {})
 // modal2.addFooterButton('Agree', 'class-3', 'class-4', (e) => {})
-// modal2.destroy() // gỡ hẳn khỏi DOM
 
 $("#open-modal-2").onclick = () => {
     const modalElement = modal2.open();
@@ -197,3 +218,18 @@ $("#open-modal-2").onclick = () => {
         };
     }
 };
+
+const modal3 = new Modal({
+    templateId: "modal-3",
+    footer: true,
+    onOpen: () => {
+        console.log("Modal 3 opened");
+    },
+    onClose: () => {
+        console.log("Modal 3 closed");
+    },
+});
+
+modal3.setFooterContent(`<h2>Footer content</h2>`);
+modal3.open();
+modal3.setFooterContent(`<h2>Footer content new</h2>`);
