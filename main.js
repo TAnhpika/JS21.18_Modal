@@ -1,6 +1,8 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
+Modal.elements = [];
+
 function Modal(options = {}) {
     const {
         templateId,
@@ -117,7 +119,8 @@ function Modal(options = {}) {
     };
 
     this.open = () => {
-        // nếu k có trong DOM ms build, k sẽ sinh ra nhìu backdrop dư
+        Modal.elements.push(this);
+
         if (!this._backdrop) {
             this.build();
         }
@@ -140,13 +143,7 @@ function Modal(options = {}) {
         }
 
         if (this._allowEscapeClose) {
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape") {
-                    this.close();
-                    // Enable scrolling
-                    document.body.classList.remove("no-scroll");
-                }
-            });
+            document.addEventListener("keydown", this._handleEscapeKey);
         }
 
         this._onTransitionEnd(() => {
@@ -156,14 +153,29 @@ function Modal(options = {}) {
         return this._backdrop;
     };
 
+    this._handleEscapeKey = (e) => {
+        // chỉ modal trên cùng mới đóng
+        const lastModal = Modal.elements[Modal.elements.length - 1];
+        if (e.key === "Escape" && this === lastModal) {
+            this.close();
+        }
+    };
+
     this._onTransitionEnd = (callback) => {
         this._backdrop.ontransitionend = (e) => {
             if (e.propertyName !== "transform") return;
             if (typeof callback === "function") callback();
         };
     };
+
     this.close = (destroy = destroyOnClose) => {
+        Modal.elements.pop();
+
         this._backdrop.classList.remove("show");
+
+        if (this._allowEscapeClose) {
+            document.removeEventListener("keydown", this._handleEscapeKey);
+        }
 
         this._onTransitionEnd(() => {
             if (this._backdrop && destroy) {
@@ -172,9 +184,12 @@ function Modal(options = {}) {
                 this._backdrop = null;
                 this._modalFooter = null;
             }
-            // Enable scrolling
-            document.body.classList.remove("no-scroll");
-            document.body.style.paddingRight = "";
+            // Enable scrolling - khi đã đóng hết modal
+            if (!Modal.elements.length) {
+                document.body.classList.remove("no-scroll");
+                document.body.style.paddingRight = "";
+            }
+
             if (typeof onClose === "function") onClose();
         });
     };
@@ -211,16 +226,9 @@ const modal2 = new Modal({
     },
 });
 
-// modal2.setFooterContent('HTML string')
-// modal2.addFooterButton('Cancel', 'class-1', 'class-2', (e) => {})
-// modal2.addFooterButton('Agree', 'class-3', 'class-4', (e) => {})
-
 $("#open-modal-2").onclick = () => {
     const modalElement = modal2.open();
 
-    // modal2.close()
-
-    // 1. Xử lý đc sự kiện submit form
     const form = modalElement.querySelector("#login-form");
     if (form) {
         form.onsubmit = (e) => {
@@ -237,7 +245,7 @@ $("#open-modal-2").onclick = () => {
 
 const modal3 = new Modal({
     templateId: "modal-3",
-    closeMethods: [],
+    closeMethods: ["escape"],
     footer: true,
     onOpen: () => {
         console.log("Modal 3 opened");
@@ -260,4 +268,14 @@ modal3.addFooterButton("<span>Agree</span>", "modal-btn primary", (e) => {
     modal3.close();
 });
 
-modal3.open();
+$("#open-modal-3").onclick = () => {
+    modal3.open();
+};
+
+/**
+ * Task: 
+ * function getScrollbarWidth() thành phương thức nội bộ
+ * tạo this.createButton
+ * add nút sau khi mở
+ * làm _onTransitionEnd ngắn hơn
+ */
