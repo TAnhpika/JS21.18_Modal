@@ -2,11 +2,12 @@ const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
 function Modal() {
-
-    // let _scrollbarWidth; -> Cache dùng getScrollbarWidth.value - thuộc tính obj để lưu -> hàm độc lập, k phụ thuộc biến ngoài
     function getScrollbarWidth() {
         if (getScrollbarWidth.value) {
-            console.log("Trả về giá trị đã lưu(k tính lại): ", getScrollbarWidth.value);
+            console.log(
+                "Trả về giá trị đã lưu(k tính lại): ",
+                getScrollbarWidth.value,
+            );
 
             return getScrollbarWidth.value;
         }
@@ -106,22 +107,43 @@ function Modal() {
     };
 }
 
-const modal = new Modal();
+const modal1 = new Modal({
+    templateId: "modal-1",
+});
 
 $("#open-modal-1").onclick = () => {
-    const modalElement = modal.openModal({
-        templateId: "modal-1",
-    });
+    const modalElement = modal1.open();
+
+    // modal1.close()
 
     const title = modalElement.querySelector("h1");
     console.log(title);
 };
 
+const modal2 = new Modal({
+    templateId: "modal-2",
+    // closeMethods: ['button', 'overlay', 'escape'],
+    // footer: true,
+    // cssClass: ['class1', 'class2', 'classN'],
+    onOpen: () => {
+        console.log("Modal opened");
+    },
+    onClose: () => {
+        console.log("Modal closes");
+    },
+});
+
+// modal2.open()
+// modal2.close() // chỉ ẩn class show, k gỡ để có thể đọc tiếp từ đoạn khi đóng
+// modal2.setFooterContent('HTML string)
+// modal2.addFooterButton('Cancel', 'class-1', 'class-2', (e) => {})
+// modal2.addFooterButton('Agree', 'class-3', 'class-4', (e) => {})
+// modal2.destroy() // gỡ hẳn khỏi DOM
+
 $("#open-modal-2").onclick = () => {
-    const modalElement = modal.openModal({
-        templateId: "modal-2",
-        allowBackdropClose: false,
-    });
+    const modalElement = modal2.open();
+
+    // modal2.close()
 
     // 1. Xử lý đc sự kiện submit form, lấy đc các giá trị của input khi submit
     const form = modalElement.querySelector("#login-form");
