@@ -1,7 +1,21 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
-function Modal() {
+function Modal(options = {}) {
+    const { templateId, closeMethods = ["button", "overlay", "escape"] } =
+        options;
+    const template = $(`#${templateId}`);
+
+    if (!template) {
+        console.error(`#${templateId} does not exist!`);
+        return;
+    }
+
+    // khi dùng _varName để đặt tên biến thì quy ước (giữa các devs) biến đó chỉ đc dùng trong hàm tạo. K dùng đối tướng sau khi tạo để gọi
+    this._allowButtonClose = closeMethods.includes("button");
+    this._allowBackdropClose = closeMethods.includes("overlay");
+    this._allowEscapeClose = closeMethods.includes("escape");
+
     function getScrollbarWidth() {
         if (getScrollbarWidth.value) {
             console.log(
@@ -32,15 +46,7 @@ function Modal() {
         return scrollbarWidth;
     }
 
-    this.openModal = (options = {}) => {
-        const { templateId, allowBackdropClose = true } = options;
-        const template = $(`#${templateId}`);
-
-        if (!template) {
-            console.error(`#${templateId} does not exist!`);
-            return;
-        }
-
+    this.open = () => {
         const content = template.content.cloneNode(true);
 
         // Create modal elements
@@ -50,16 +56,21 @@ function Modal() {
         const container = document.createElement("div");
         container.className = "modal-container";
 
-        const closeBtn = document.createElement("button");
-        closeBtn.className = "modal-close";
-        closeBtn.innerHTML = "&times;";
+        if (this._allowButtonClose) {
+            const closeBtn = document.createElement("button");
+            closeBtn.className = "modal-close";
+            closeBtn.innerHTML = "&times;";
+
+            container.append(closeBtn);
+            closeBtn.onclick = () => this.close(backdrop);
+        }
 
         const modalContent = document.createElement("div");
         modalContent.className = "modal-content";
 
         // Append content and elements
         modalContent.append(content);
-        container.append(closeBtn, modalContent);
+        container.append(modalContent);
         backdrop.append(container);
         document.body.append(backdrop);
 
@@ -67,36 +78,35 @@ function Modal() {
             backdrop.classList.add("show");
         }, 0);
 
-        // 3. Khóa cuộn trang khi modal đang bật: tránh người dùng mất tập trung vào nội dung modal
         // Disable scrolling
         document.body.classList.add("no-scroll");
         document.body.style.paddingRight = getScrollbarWidth() + "px";
 
-        // Attach event listeners
-        closeBtn.onclick = () => this.closeModal(backdrop);
-
         // 2. Thêm tùy chọn bật/tắt cho phép click vào overlay để đóng modal. (form nhiều chỗ điền, out là mất)
-        if (allowBackdropClose) {
+        if (this._allowBackdropClose) {
             backdrop.onclick = (e) => {
                 if (e.target === backdrop) {
-                    this.closeModal(backdrop);
+                    this.close(backdrop);
                     // Enable scrolling
                     document.body.classList.remove("no-scroll");
                 }
             };
         }
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                this.closeModal(backdrop);
-                // Enable scrolling
-                document.body.classList.remove("no-scroll");
-            }
-        });
+
+        if (this._allowEscapeClose) {
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    this.close(backdrop);
+                    // Enable scrolling
+                    document.body.classList.remove("no-scroll");
+                }
+            });
+        }
 
         return backdrop;
     };
 
-    this.closeModal = (modalElement) => {
+    this.close = (modalElement) => {
         modalElement.classList.remove("show");
         modalElement.ontransitionend = () => {
             modalElement.remove();
@@ -115,14 +125,11 @@ $("#open-modal-1").onclick = () => {
     const modalElement = modal1.open();
 
     // modal1.close()
-
-    const title = modalElement.querySelector("h1");
-    console.log(title);
 };
 
 const modal2 = new Modal({
     templateId: "modal-2",
-    // closeMethods: ['button', 'overlay', 'escape'],
+    closeMethods: ['button', 'escape'],
     // footer: true,
     // cssClass: ['class1', 'class2', 'classN'],
     onOpen: () => {
@@ -134,7 +141,7 @@ const modal2 = new Modal({
 });
 
 // modal2.open()
-// modal2.close() // chỉ ẩn class show, k gỡ để có thể đọc tiếp từ đoạn khi đóng
+// modal2.close(true) // chỉ ẩn class show, k gỡ để có thể đọc tiếp từ đoạn khi đóng
 // modal2.setFooterContent('HTML string)
 // modal2.addFooterButton('Cancel', 'class-1', 'class-2', (e) => {})
 // modal2.addFooterButton('Agree', 'class-3', 'class-4', (e) => {})
@@ -145,7 +152,7 @@ $("#open-modal-2").onclick = () => {
 
     // modal2.close()
 
-    // 1. Xử lý đc sự kiện submit form, lấy đc các giá trị của input khi submit
+    // 1. Xử lý đc sự kiện submit form
     const form = modalElement.querySelector("#login-form");
     if (form) {
         form.onsubmit = (e) => {
