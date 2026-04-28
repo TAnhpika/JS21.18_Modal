@@ -97,7 +97,28 @@ main {
 }
 
 .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
     padding: 20px 0;
+}
+
+.modal-btn {
+    padding: 8px 20px;
+    background-color: pink;
+    color: #fff;
+}
+
+.modal-btn.primary {
+    background-color: rgb(42, 55, 197);
+}
+
+.modal-btn.danger {
+    background-color: rgb(174, 37, 60);
+}
+
+.modal-btn.pull-left {
+    margin-right: auto;
 }
 
 .no-scroll {
