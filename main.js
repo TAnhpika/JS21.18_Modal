@@ -137,7 +137,7 @@ Popzy.prototype.open = function () {
             if (e.target === this._backdrop) {
                 this.close();
                 // Enable scrolling
-                document.body.classList.remove("no-scroll");
+                document.body.classList.remove("popzy--no-scroll");
             }
         };
     }
@@ -290,10 +290,3 @@ modal3.addFooterButton("<span>Agree</span>", "popzy__btn popzy__btn--primary", (
 $("#open-modal-3").onclick = () => {
     modal3.open();
 };
-
-/**
- * Current Task:
- * chuyển phương thức nội bộ thành hết Prototype: khi new Popzy chỉ cần gọi, k cần tạo lại
-
- * New Task:
- */
